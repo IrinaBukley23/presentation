@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/sky.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>React 18</h1> 
+					<h2>New features</h2>
+				</section>
+				<section>
+					<h5>What is batching and how does it work?</h5>
+				</section>
+				<section>
+					<section>
+						<p>React 17th version</P>
+<pre> <code data-trim data-line-numbers="30-46">
+function App() {
+	const [count, setCount] = useState(0);
+	const [flag, setFlag] = useState(false);
+
+	function handleClick() {
+		setCount(c => c + 1); // Does not re-render yet
+		setFlag(f => !f); // Does not re-render yet
+		// React will only re-render once at the end (that's batching!)
+	}
+
+	return (
+		<div>
+		<button onClick={handleClick}>Next</button>
+		<h1 style=`{{ color: flag ? "blue" : "black" }}`>
+			{count}
+		</h1>
+		</div>
+	);
+}
+</code></pre>	
+					</section>
+					<section>
+						<p>But if we have async function</P>
+<pre> <code data-trim data-line-numbers="52-59">
+	function handleClick() {
+		fetchSomething().then(() => {
+		  // React 17 and earlier does NOT batch these because
+		  // they run *after* the event in a callback, not *during* it
+		  setCount(c => c + 1); // Causes a re-render
+		  setFlag(f => !f); // Causes a re-render
+		});
+	  }
+</code></pre>	
+					</section>
+				</section>
+				<section>	
+					<section>
+						<p>React 18th version</p>
+<pre> <code data-trim data-line-numbers="67-71">
+	function handleClick() {
+		setCount(c => c + 1);
+		setFlag(f => !f);
+		// React will only re-render once at the end (that's batching!)
+	  }
+</code></pre>
+					</section>
+					<section>
+						<p>behaves the same as this:</p>
+<pre> <code data-trim data-line-numbers="76-82">
+	setTimeout(() => {
+		setCount(c => c + 1);
+		setFlag(f => !f);
+		// React will only re-render once at the end (that's batching!)
+		}, 1000);
+</code></pre>
+					</section>
+				</section>
+				<section>
+					<section><h4>What if I don’t want to batch?</h4></section>
+					<section>
+						<p>you can use ReactDOM.flushSync()</p>
+<pre> <code data-trim data-line-numbers="90-101">
+import { flushSync } from 'react-dom'; // Note: react-dom, not react
+
+function handleClick() {
+  flushSync(() => {
+    setCounter(c => c + 1);
+  });
+  // React has updated the DOM by now
+  flushSync(() => {
+    setFlag(f => !f);
+  });
+  // React has updated the DOM by now
+}
+</code></pre>
+					</section>
+				</section>
+				<section>
+					<h1>Q&A</h1>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
